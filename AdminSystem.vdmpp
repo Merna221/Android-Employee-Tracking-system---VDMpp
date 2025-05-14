@@ -1,0 +1,99 @@
+-- AdminSystem.vdm
+class AdminSystem
+
+--Declares a private instance of EmployeeSystem called empSystem.
+instance variables
+  private empSystem : EmployeeSystem := new EmployeeSystem();
+
+operations
+
+--A public operation to add a new employee using their ID, name, role, and salary.
+  public addNewEmployee: Employee`EmployeeId * seq of char * Employee`Role * nat ==> ()
+  addNewEmployee(eid, name, role, salary) ==
+    empSystem.addEmployee(eid, name, role, salary);
+
+--Retrieves all attendance records for a specific employee by ID.
+  public viewAttendance: Employee`EmployeeId ==> set of AttendanceManager`AttendanceRecord
+  viewAttendance(eid) ==
+    return empSystem.getEmployeeAttendance(eid);
+
+--Returns a map of salary dates to amounts for a given employee.
+  public viewSalaryHistory: Employee`EmployeeId ==> map SalaryManager`SalaryDate to nat
+  viewSalaryHistory(eid) ==
+    return empSystem.getEmployeeSalaryHistory(eid);
+
+--Returns a map of timestamps to GPS coordinates (real, real) for a given employee.
+  public viewLocationLog: Employee`EmployeeId ==> map nat to (real * real)
+  viewLocationLog(eid) ==
+    return empSystem.getEmployeeLocationLog(eid);
+    
+--A test function that simulates adding two employees and performing:
+--Check-in/out for empA
+--Salary payment for empA
+--Console output of empA’s:
+--Attendance records
+--Salary history
+--Location log
+
+  public TestAdminSystem: () ==> ()
+  TestAdminSystem() == 
+  (
+    def eid1 = mk_token("empA") in   --Uses mk_token("...") to create unique employee IDs.
+    def eid2 = mk_token("empB") in
+    (
+      addNewEmployee(eid1, "Alice", <Employee>, 6000);
+      addNewEmployee(eid2, "Bob", <HR>, 7000);
+      empSystem.checkIn(eid1, mk_(1,5,2025), 30.0, 31.0);  --Uses mk_(...) to create a Date tuple.
+      empSystem.paySalary(eid1, 6000, mk_(1,5,2025));
+      empSystem.checkOut(eid1, mk_(1,5,2025), 30.1, 31.1);
+      IO`println("Attendance for empA:");
+      IO`println(viewAttendance(eid1));
+      IO`println("Salary History for empA:");
+      IO`println(viewSalaryHistory(eid1));
+      IO`println("Location Log for empA:");
+      IO`println(viewLocationLog(eid1))
+    )
+  );
+
+-- simulate and test individual operations in isolation.
+traces
+
+--Runs the full TestAdminSystem() sequence above.
+  trace_TestAdminSystem: TestAdminSystem();
+
+--Tests the addition of two employees: Alice and Merna.
+  trace_AddNewEmployee:
+    let eid1 = mk_token("empA") in
+      addNewEmployee(eid1, "Alice", <Employee>, 6000);
+    let eid2 = mk_token("empB") in
+      addNewEmployee(eid2, "Merna", <Employee>, 7000);
+
+--Adds empA, checks them in, then views their attendance.
+  trace_ViewAttendance:
+    let eid1 = mk_token("empA") in
+    (
+      addNewEmployee(eid1, "Alice", <Employee>, 6000);
+      empSystem.checkIn(eid1, mk_(1,5,2025), 30.0, 31.0);
+      viewAttendance(eid1)
+    );
+
+--Adds empA, pays salary, then checks salary history.
+  trace_ViewSalaryHistory:
+    let eid1 = mk_token("empA") in
+    (
+      addNewEmployee(eid1, "Alice", <Employee>, 6000);
+      empSystem.paySalary(eid1, 6000, mk_(1,5,2025));
+      viewSalaryHistory(eid1)
+    );
+
+--Adds empA, performs check-in/out with GPS, then views location log.
+  trace_ViewLocationLog:
+    let eid1 = mk_token("empA") in
+    (
+      addNewEmployee(eid1, "Alice", <Employee>, 6000);
+      empSystem.checkIn(eid1, mk_(1,5,2025), 30.0, 31.0);
+      empSystem.checkOut(eid1, mk_(1,5,2025), 30.1, 31.1);
+      viewLocationLog(eid1)
+    );  
+
+end AdminSystem
