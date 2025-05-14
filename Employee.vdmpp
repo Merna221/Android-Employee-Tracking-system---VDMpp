@@ -1,0 +1,49 @@
+class Employee
+
+types
+  public EmployeeId = token;
+  public Name = seq of char;
+  public GPS = real * real;
+  public Role = <Employee> | <Admin> | <HR>;
+  public Status = <CheckedIn> | <CheckedOut>;
+
+instance variables
+  private id : EmployeeId := mk_token("default");
+  private name : Name := "";
+private currentLocation : GPS := mk_(0.0, 0.0);
+  private role : Role := <Employee>;
+  private status : Status := <CheckedOut>;
+  private salary : nat := 0;
+
+operations
+  public Employee: EmployeeId * Name * Role * nat ==> Employee
+  Employee(eid, n, r, s) == (
+    id := eid;
+    name := n;
+    role := r;
+    salary := s;
+    return self
+  );
+
+  public getId: () ==> EmployeeId
+  getId() == return id;
+
+  public getRole: () ==> Role
+  getRole() == return role;
+
+  public updateLocation: GPS ==> ()
+  updateLocation(loc) == currentLocation := loc;
+
+  public getLocation: () ==> GPS
+  getLocation() == return currentLocation;
+
+  public getStatus: () ==> Status
+  getStatus() == return status;
+
+  public setStatus: Status ==> ()
+  setStatus(s) == status := s;
+
+  public getSalary: () ==> nat
+  getSalary() == return salary;
+
+end Employee
