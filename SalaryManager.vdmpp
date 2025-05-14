@@ -1,0 +1,22 @@
+class SalaryManager
+
+types
+  public SalaryDate = nat * nat * nat; -- (day, month, year)
+
+instance variables
+  private salaryLog : map Employee`EmployeeId to map SalaryDate to nat := {|->};
+
+operations
+  public addSalaryRecord: Employee`EmployeeId * nat * SalaryDate ==> ()
+  addSalaryRecord(eid, amount, date) ==
+    if eid in set dom salaryLog then
+      salaryLog(eid) := salaryLog(eid) ++ {date |-> amount}
+    else
+      salaryLog := salaryLog ++ {eid |-> {date |-> amount}};
+
+  public getSalaryHistory: Employee`EmployeeId ==> map SalaryDate to nat
+  getSalaryHistory(eid) ==
+    return salaryLog(eid)
+  pre eid in set dom salaryLog;
+
+end SalaryManager
