@@ -1,5 +1,3 @@
-# Android-Employee-Tracking-system---VDMpp
-Fieldwork-based employee tracking system using Android and Web applications with GPS, image logging, salary management, and attendance monitoring — formally specified in VDM++ using Overture.
 # Android Employee Tracker (VDM++ Specification)
 
 This project is a formally specified system using **VDM++ (vdmpp)** in the **Overture** tool. It outlines an employee tracking system built for fieldwork-based organizations using both Android and web platforms.
