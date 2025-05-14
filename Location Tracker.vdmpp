@@ -1,0 +1,19 @@
+class LocationTracker
+
+instance variables
+  private locations : map Employee`EmployeeId to map nat to (real * real) := {|->};
+
+operations
+  public logLocation: Employee`EmployeeId * nat * (real * real) ==> ()
+  logLocation(eid, timestamp, coord) ==
+    if eid in set dom locations then
+      locations(eid) := locations(eid) ++ {timestamp |-> coord}
+    else
+      locations := locations ++ {eid |-> {timestamp |-> coord}};
+
+  public getLocationLog: Employee`EmployeeId ==> map nat to (real * real)
+  getLocationLog(eid) ==
+    return locations(eid)
+  pre eid in set dom locations;
+
+end LocationTracker
