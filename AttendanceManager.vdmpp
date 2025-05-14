@@ -1,0 +1,24 @@
+class AttendanceManager
+
+types
+  public Date = nat * nat * nat;
+  public Status = <CheckedIn> | <CheckedOut>;
+  public AttendanceRecord :: date : Date
+                           status : Status;
+
+instance variables
+  private log : map Employee`EmployeeId to set of AttendanceRecord := {|->};
+
+operations
+  public markAttendance: Employee`EmployeeId * Date * Status ==> ()
+  markAttendance(eid, d, s) ==
+    if eid in set dom log
+    then log := log ++ {eid |-> log(eid) union {mk_AttendanceRecord(d, s)}}
+    else log := log ++ {eid |-> {mk_AttendanceRecord(d, s)}};
+
+  public getAttendance: Employee`EmployeeId ==> set of AttendanceRecord
+  getAttendance(eid) ==
+    return log(eid)
+  pre eid in set dom log;
+
+end AttendanceManager
