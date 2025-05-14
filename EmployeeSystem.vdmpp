@@ -1,0 +1,149 @@
+class EmployeeSystem
+
+instance variables
+  private employees : map Employee`EmployeeId to Employee := {|->};
+  private attendance : AttendanceManager := new AttendanceManager();
+  private gpsTracker : LocationTracker := new LocationTracker();
+  private salaryMgr : SalaryManager := new SalaryManager();
+
+operations
+
+  public addEmployee: Employee`EmployeeId * seq of char * Employee`Role * nat ==> ()
+  addEmployee(eid, name, role, salary) == 
+    employees := employees ++ {eid |-> new Employee(eid, name, role, salary)}
+  pre eid not in set dom employees;
+
+  public checkIn: Employee`EmployeeId * (nat * nat * nat) * real * real ==> ()
+  checkIn(eid, date, lat, lon) == (
+    employees(eid).setStatus(<CheckedIn>);
+    attendance.markAttendance(eid, date, <CheckedIn>);
+    gpsTracker.logLocation(eid, 0, mk_(lat, lon));
+  )
+  pre eid in set dom employees;
+
+  public checkOut: Employee`EmployeeId * (nat * nat * nat) * real * real ==> ()
+  checkOut(eid, date, lat, lon) == (
+    employees(eid).setStatus(<CheckedOut>);
+    attendance.markAttendance(eid, date, <CheckedOut>);
+    gpsTracker.logLocation(eid, 0, mk_(lat, lon));
+  )
+  pre eid in set dom employees;
+
+  public paySalary: Employee`EmployeeId * nat * (nat * nat * nat) ==> ()
+  paySalary(eid, amt, date) ==
+    salaryMgr.addSalaryRecord(eid, amt, date)
+  pre eid in set dom employees;
+
+  public getEmployeeStatus: Employee`EmployeeId ==> Employee`Status
+  getEmployeeStatus(eid) == 
+    return employees(eid).getStatus()
+  pre eid in set dom employees;
+
+  public getEmployeeAttendance: Employee`EmployeeId ==> set of AttendanceManager`AttendanceRecord
+  getEmployeeAttendance(eid) ==
+    return attendance.getAttendance(eid)
+  pre eid in set dom employees;
+
+  public getEmployeeSalaryHistory: Employee`EmployeeId ==> map SalaryManager`SalaryDate to nat
+  getEmployeeSalaryHistory(eid) ==
+    return salaryMgr.getSalaryHistory(eid)
+  pre eid in set dom employees;
+
+  public getEmployeeLocationLog: Employee`EmployeeId ==> map nat to (real * real)
+  getEmployeeLocationLog(eid) ==
+    return gpsTracker.getLocationLog(eid)
+  pre eid in set dom employees;
+
+  public getAttendanceManager: () ==> AttendanceManager
+  getAttendanceManager() == return attendance;
+
+  public getSalaryManager: () ==> SalaryManager
+  getSalaryManager() == return salaryMgr;
+
+  public getLocationTracker: () ==> LocationTracker
+  getLocationTracker() == return gpsTracker;
+
+  -- Test operation
+  public TestSystem: () ==> ()
+  TestSystem() == (
+    addEmployee(mk_token("emp1"), "John Doe", <Employee>, 50000);
+    checkIn(mk_token("emp1"), mk_(1,1,2023), 40.7128, -74.0060);
+    paySalary(mk_token("emp1"), 50000, mk_(1,1,2023));
+    checkOut(mk_token("emp1"), mk_(1,1,2023), 40.7128, -74.0060);
+    IO`println("System test completed");
+  );
+
+  -- Test location logging
+  public testLocation: () ==> ()
+  testLocation() == (
+    def eid = mk_token("empB") in (
+      addEmployee(eid, "Bob", <Employee>, 4000);
+      gpsTracker.logLocation(eid, 1000, mk_(25.5, 55.5));
+      gpsTracker.logLocation(eid, 1010, mk_(25.6, 55.6));
+      IO`println("Location log for empB: ");
+      IO`println(gpsTracker.getLocationLog(eid))
+    )
+  );
+  
+  -- Test attendance logging
+  public testAttendance: () ==> ()
+  testAttendance() == (
+    def eid = mk_token("emp1") in (
+      addEmployee(eid, "John Doe", <Employee>, 50000);
+      attendance.markAttendance(eid, mk_(2, 1, 2023), <CheckedIn>);
+      attendance.markAttendance(eid, mk_(3, 1, 2023), <CheckedOut>);
+      IO`println("Attendance log for emp1: ");
+      IO`println(attendance.getAttendance(eid));
+    )
+  );
+
+  -- Test salary management
+  public testSalary: () ==> ()
+  testSalary() == (
+    def eid = mk_token("emp1") in (
+      addEmployee(eid, "John Doe", <Employee>, 50000);
+      paySalary(eid, 50000, mk_(4, 1, 2023));
+      paySalary(eid, 50000, mk_(5, 1, 2023));
+      IO`println("Salary history for emp1: ");
+      IO`println(salaryMgr.getSalaryHistory(eid));
+    )
+  );
+
+traces
+
+  trace_ViewProfile:
+    let eid1 = mk_token("empA") in
+    (
+      addEmployee(eid1, "Alice", <Employee>, 6000);
+      checkIn(eid1, mk_(1,5,2025), 30.0, 31.0);
+      getEmployeeStatus(eid1)
+    );
+
+  trace_ViewAttendance:
+    let eid1 = mk_token("empA") in
+    (
+      addEmployee(eid1, "Alice", <Employee>, 6000);
+      checkIn(eid1, mk_(1,5,2025), 30.0, 31.0);
+      checkOut(eid1, mk_(1,5,2025), 30.1, 31.1);
+      getEmployeeAttendance(eid1)
+    );
+
+  trace_ViewSalaryHistory:
+    let eid1 = mk_token("empA") in
+    (
+      addEmployee(eid1, "Alice", <Employee>, 6000);
+      paySalary(eid1, 6000, mk_(1,5,2025));
+      paySalary(eid1, 6000, mk_(1,6,2025));
+      getEmployeeSalaryHistory(eid1)
+    );
+
+  trace_ViewLocationLog:
+    let eid1 = mk_token("empA") in
+    (
+      addEmployee(eid1, "Alice", <Employee>, 6000);
+      checkIn(eid1, mk_(1,5,2025), 30.0, 31.0);
+      checkOut(eid1, mk_(1,5,2025), 30.1, 31.1);
+      getEmployeeLocationLog(eid1)
+    );
+
+end EmployeeSystem
