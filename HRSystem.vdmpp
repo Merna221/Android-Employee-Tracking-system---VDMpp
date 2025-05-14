@@ -1,0 +1,70 @@
+-- HRSystem.vdm
+
+--Defines a new class named HRSystem. This class provides operations typically handled by HR personnel,
+-- like adding employees and viewing their records.
+
+class HRSystem
+
+--Declares a private instance variable empSystem of type EmployeeSystem.
+--It is initialized to a new object of EmployeeSystem, which internally manages employees, 
+--attendance, salary, and locations.
+
+instance variables
+  private empSystem : EmployeeSystem := new EmployeeSystem();
+
+operations
+
+--Public operation to add a new employee.
+--Takes an employee ID (eid), name (character sequence), and salary (natural number).
+  public addEmployeeInfo: Employee`EmployeeId * seq of char * nat ==> ()
+  addEmployeeInfo(eid, name, salary) ==
+    empSystem.addEmployee(eid, name, <Employee>, salary);
+
+--Returns a set of attendance records for the employee with the specified ID.
+  public viewAttendance: Employee`EmployeeId ==> set of AttendanceManager`AttendanceRecord
+  viewAttendance(eid) ==
+    return empSystem.getEmployeeAttendance(eid);
+
+--Returns a map of dates to salary amounts for the specified employee.
+  public viewSalary: Employee`EmployeeId ==> map SalaryManager`SalaryDate to nat
+  viewSalary(eid) ==
+    return empSystem.getEmployeeSalaryHistory(eid);
+
+--Returns the employee's location history, mapping timestamps (natural numbers) to GPS coordinates (real, real).
+  public getEmployeeLocation: Employee`EmployeeId ==> map nat to (real * real)
+  getEmployeeLocation(eid) ==
+    return empSystem.getEmployeeLocationLog(eid);
+
+--A test procedure that simulates a realistic workflow for an HR user.
+--Creates a new employee empC (Charlie).
+--Records a check-in at coordinates (35.0, 36.0) on May 2, 2025.
+--Pays a salary of 5500 on the same date.
+--Records a check-out with slightly different coordinates (35.1, 36.1).
+--Prints: Attendance records, Salary history, Location logs
+
+  public TestHRSystem: () ==> ()
+  TestHRSystem() == (
+    def eid = mk_token("empC") --creates a token representing the employee ID.
+    in (
+      addEmployeeInfo(eid, "Charlie", 5500);
+      empSystem.checkIn(eid, mk_(2,5,2025), 35.0, 36.0); --creates a date tuple (day, month, year).
+      empSystem.paySalary(eid, 5500, mk_(2,5,2025));
+      empSystem.checkOut(eid, mk_(2,5,2025), 35.1, 36.1);
+      IO`println("Attendance for empC:");
+      IO`println(viewAttendance(eid));
+      IO`println("Salary History for empC:");
+      IO`println(viewSalary(eid));
+      IO`println("Location Log for empC:");
+      IO`println(getEmployeeLocation(eid));
+    )
+  );
+
+--Used for automatic simulation and validation of specific sequences in the model
+traces
+  trace_TestHRSystem: TestHRSystem(); --Executes the full TestHRSystem() operation as a trace scenario.
+  trace_AddEmployeeInfo:
+    let eid = mk_token("empD") in
+      addEmployeeInfo(eid, "David", 6000);
+      --Adds a new employee named "David" with salary 6000, and role implicitly <Employee>.
+
+end HRSystem
